@@ -8,28 +8,21 @@
  * Java Code at https://github.com/geezorg/geezorg.github.io/blob/master/Calendars/EthiopicCalendar.java
  */
 
-/*
-** ********************************************************************************
-**  Era Definitions and Private Data
-** ********************************************************************************
-*/
 const JD_EPOCH_OFFSET_AMETE_ALEM = -285019; // ዓ/ዓ
 const JD_EPOCH_OFFSET_AMETE_MIHRET = 1723856; // ዓ/ም
 const JD_EPOCH_OFFSET_GREGORIAN = 1721426;
-
-const nMonths = 12;
-
-const monthDays = [
-  0,
-  31, 28, 31, 30, 31, 30,
-  31, 31, 30, 31, 30, 31,
-];
 
 function mod(i, j) {
   return (i - (j * Math.floor(i / j)));
 }
 
-function isGregorianLeap(year) {
+/**
+ * determines if a Gregorian year is leap year or not
+ *
+ * @param  {Number}  year
+ * @return {Boolean}
+ */
+function isGregorianLeap(year = 1) {
   return (year % 4 === 0) && ((year % 100 !== 0) || (year % 400 === 0));
 }
 
@@ -50,16 +43,27 @@ function ethCopticToJDN(year, month, day, era) {
   return (era + 365) + 365 * (year - 1) + Math.floor(year / 4) + 30 * month + day - 31;
 }
 
-function jdnToGregorian(jdn) {
-  const r2000 = mod((jdn - JD_EPOCH_OFFSET_GREGORIAN), 730485);
-  const r400 = mod((jdn - JD_EPOCH_OFFSET_GREGORIAN), 146097);
+/**
+ * converts JDN to Gregorian
+ *
+ * @param  {Number} jdn
+ * @param  {Number} JD_OFFSET
+ * @param  {Function} leapYear
+ * @return {Number}
+ */
+function jdnToGregorian(jdn, JD_OFFSET = JD_EPOCH_OFFSET_GREGORIAN, leapYear = isGregorianLeap) {
+  const nMonths = 12;
+  const monthDays = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+  const r2000 = mod((jdn - JD_OFFSET), 730485);
+  const r400 = mod((jdn - JD_OFFSET), 146097);
   const r100 = mod(r400, 36524);
   const r4 = mod(r100, 1461);
 
   let n = mod(r4, 365) + 365 * Math.floor(r4 / 1460);
   const s = Math.floor(r4 / 1095);
 
-  const aprime = 400 * Math.floor((jdn - JD_EPOCH_OFFSET_GREGORIAN) / 146097)
+  const aprime = 400 * Math.floor((jdn - JD_OFFSET) / 146097)
                + 100 * Math.floor(r400 / 36524)
                + 4 * Math.floor(r100 / 1461)
                + Math.floor(r4 / 365)
@@ -75,7 +79,7 @@ function jdnToGregorian(jdn) {
     month = 12;
     day = 31;
   } else {
-    monthDays[2] = (isGregorianLeap(year)) ? 29 : 28;
+    monthDays[2] = (leapYear(year)) ? 29 : 28;
     for (let i = 1; i <= nMonths; i += 1) {
       if (n <= monthDays[i]) {
         day = n;
@@ -89,10 +93,14 @@ function jdnToGregorian(jdn) {
   return { year, month, day };
 }
 
-function guessEraFromJDN(jdn) {
-  return (jdn >= (JD_EPOCH_OFFSET_AMETE_MIHRET + 365))
-    ? JD_EPOCH_OFFSET_AMETE_MIHRET
-    : JD_EPOCH_OFFSET_AMETE_ALEM;
+/**
+ * guesses ERA from JDN
+ *
+ * @param  {Number} jdn
+ * @return {Number}
+ */
+function guessEraFromJDN(jdn, JD_AM = JD_EPOCH_OFFSET_AMETE_MIHRET, JD_AA = JD_EPOCH_OFFSET_AMETE_ALEM) {
+  return (jdn >= (JD_AM + 365)) ? JD_AM : JD_AA;
 }
 
 /**
@@ -144,8 +152,7 @@ function jdnToEthiopic(jdn, era = JD_EPOCH_OFFSET_AMETE_MIHRET) {
 }
 
 function ethiopicToGregorian(year = 1, month = 1, day = 1, era = JD_EPOCH_OFFSET_AMETE_MIHRET) {
-  const jdn = ethCopticToJDN(year, month, day, era);
-  return jdnToGregorian(jdn);
+  return jdnToGregorian(ethCopticToJDN(year, month, day, era));
 }
 
 function gregorianToEthiopic(year = 1, month = 1, day = 1) {
@@ -154,6 +161,9 @@ function gregorianToEthiopic(year = 1, month = 1, day = 1) {
 }
 
 module.exports = {
+  isGregorianLeap,
+  gregorianToJDN,
+  jdnToEthiopic,
   ethiopicToGregorian,
   gregorianToEthiopic,
   AA: JD_EPOCH_OFFSET_AMETE_ALEM,
