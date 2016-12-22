@@ -45,20 +45,16 @@ function jdnToGregorian(j = 0) {
   const r100 = r400 % 36524;
   const r4 = r100 % 1461;
 
-  let n = (r4 % 365) + 365 * Math.floor(r4 / 1460);
+  let n = (r4 % 365) + (365 * Math.floor(r4 / 1460));
   const s = Math.floor(r4 / 1095);
-
-
-  const aprime = 400 * Math.floor((j - JD_EPOCH_OFFSET_GREGORIAN) / 146097)
-               + 100 * Math.floor(r400 / 36524)
-               + 4 * Math.floor(r100 / 1461)
-               + Math.floor(r4 / 365)
-               - Math.floor(r4 / 1460)
-               - Math.floor(r2000 / 730484);
-
+  const aprime = (400 * Math.floor((j - JD_EPOCH_OFFSET_GREGORIAN) / 146097))
+               + (100 * Math.floor(r400 / 36524))
+               + (4 * Math.floor(r100 / 1461))
+               + (Math.floor(r4 / 365) - (Math.floor(r4 / 1460) - Math.floor(r2000 / 730484)));
   const year = aprime + 1;
-  const t = Math.floor((364 + s - n) / 306);
-  let month = t * (Math.floor(n / 31) + 1) + (1 - t) * (Math.floor((5 * (n - s) + 13) / 153) + 1);
+  const t = Math.floor(((364 + s) - n) / 306);
+  let month = (t * (Math.floor(n / 31) + 1))
+            + ((1 - t) * (Math.floor(((5 * (n - s)) + 13) / 153) + 1));
 
   n += 1 - Math.floor(r2000 / 730484);
   let day = n;
@@ -68,11 +64,12 @@ function jdnToGregorian(j = 0) {
     day = 31;
   } else {
     monthDays[2] = (isGregorianLeap(year)) ? 29 : 28;
-    for (let i = 1; i <= nMonths; ++i) {
+    for (let i = 1; i <= nMonths; i += 1) {
       if (n <= monthDays[i]) {
         day = n;
         break;
       }
+
       n -= monthDays[i];
     }
   }
@@ -89,23 +86,18 @@ function jdnToGregorian(j = 0) {
  * @return {Number}
  */
 function gregorianToJDN(year = 1, month = 1, day = 1) {
-  const s = Math.floor(year / 4)
-          - Math.floor((year - 1) / 4)
-          - Math.floor(year / 100)
-          + Math.floor((year - 1) / 100)
-          + Math.floor(year / 400)
-          - Math.floor((year - 1) / 400);
+  const s = ((Math.floor(year / 4) - Math.floor((year - 1) / 4)) - Math.floor(year / 100))
+          + Math.floor((year - 1) / 100) + (Math.floor(year / 400) - Math.floor((year - 1) / 400));
 
   const t = Math.floor((14 - month) / 12);
 
-  const n = 31 * t * (month - 1)
-          + (1 - t) * (59 + s + 30 * (month - 3) + Math.floor((3 * month - 7) / 5))
-          + day - 1;
+  const n = ((31 * t) * (month - 1))
+          + ((1 - t) * (59 + s + (30 * (month - 3)) + Math.floor(((3 * month) - 7) / 5)))
+          + (day - 1);
 
   const j = JD_EPOCH_OFFSET_GREGORIAN
-          + 365 * (year - 1)
-          + Math.floor((year - 1) / 4)
-          - Math.floor((year - 1) / 100)
+          + (365 * (year - 1))
+          + (Math.floor((year - 1) / 4) - Math.floor((year - 1) / 100))
           + Math.floor((year - 1) / 400)
           + n;
 
@@ -124,11 +116,9 @@ function gregorianToJDN(year = 1, month = 1, day = 1) {
  */
 function jdnToEthiopic(jdn = 1, era = 1) {
   const r = (jdn - era) % 1461;
-  const n = (r % 365) + 365 * Math.floor(r / 1460);
+  const n = (r % 365) + (365 * Math.floor(r / 1460));
 
-  const year = 4 * Math.floor((jdn - era) / 1461)
-      + Math.floor(r / 365)
-      - Math.floor(r / 1460);
+  const year = ((4 * Math.floor((jdn - era) / 1461)) + Math.floor(r / 365)) - Math.floor(r / 1460);
   const month = Math.floor(n / 30) + 1;
   const day = (n % 30) + 1;
 
@@ -145,7 +135,7 @@ function jdnToEthiopic(jdn = 1, era = 1) {
  * @return {Number}
  */
 function ethCopticToJDN(year = 1, month = 1, day = 1, era = 1) {
-  return (era + 365) + 365 * (year - 1) + Math.floor(year / 4) + 30 * month + day - 31;
+  return (era + 365) + (365 * (year - 1)) + Math.floor(year / 4) + (30 * month) + (day - 31);
 }
 
 /**
@@ -178,43 +168,7 @@ function gregorianToEthiopic(year = 1, month = 1, day = 1) {
   return jdnToEthiopic(gregorianToJDN(year, month, day), JD_EPOCH_OFFSET_AMETE_MIHRET);
 }
 
-/**
- * given Gregorian (en) weekday returns the Ethiopic dddd
- *
- * @param  {String} day
- * @return {String | null}
- */
-function gregorianWeekdayToEthiopicWeekday(day) {
-  const dddd = {
-    Sunday: 'እሑድ',
-    Monday: 'ሰኞ',
-    Tuesday: 'ማክሰኞ',
-    Wednesday: 'ረቡዕ',
-    Thursday: 'ሐሙስ',
-    Friday: 'ዓርብ',
-    Saturday: 'ቅዳሜ',
-  };
-
-  return dddd[day] || null;
-}
-
-/**
- * given an Ethiopic month number returns Ethiopic MMMM
- *
- * @param {Number} month
- * @return {String | null}
- */
-function ethiopicMonthToFullEthiopicMonth(month) {
-  const MMMM = ['መስከረም', 'ጥቅምት', 'ኅዳር', 'ታኅሣሥ', 'ጥር', 'የካቲት', 'መጋቢት', 'ሚያዝያ', 'ግንቦት', 'ሰኔ', 'ሐምሌ', 'ነሐሴ', 'ጳጉሜ'];
-
-  return MMMM[month - 1] || null;
-}
-
 module.exports = {
   ethiopicToGregorian,
   gregorianToEthiopic,
-  gregorianWeekdayToEthiopicWeekday,
-  ethiopicMonthToFullEthiopicMonth,
 };
-
-console.log(gregorianToEthiopic(1991, 9, 8));

@@ -3,6 +3,6 @@
 JavaScript implementation of [Beyene-Kudlek](http://geez.org/Calendars/) algorithm.
 
 ### TODO
-- [ ] Pass ESLint rules
+- [X] Pass ESLint rules
 - [ ] Tests
 - [ ] Make functions pure
