@@ -95,7 +95,16 @@ function guessEraFromJDN(jdn) {
     : JD_EPOCH_OFFSET_AMETE_ALEM;
 }
 
-function gregorianToJDN(year = 1, month = 1, day = 1) {
+/**
+ * given year, month and day of Gregorian returns JDN
+ *
+ * @param  {Number} year
+ * @param  {Number} month
+ * @param  {Number} day
+ * @param  {Number} JD_OFFSET
+ * @return {Number}
+ */
+function gregorianToJDN(year = 1, month = 1, day = 1, JD_OFFSET = JD_EPOCH_OFFSET_GREGORIAN) {
   const s = Math.floor(year / 4)
           - Math.floor((year - 1) / 4)
           - Math.floor(year / 100)
@@ -104,10 +113,9 @@ function gregorianToJDN(year = 1, month = 1, day = 1) {
           - Math.floor((year - 1) / 400);
   const t = Math.floor((14 - month) / 12);
   const n = 31 * t * (month - 1)
-        + (1 - t) * (59 + s + 30 * (month - 3) + Math.floor((3 * month - 7) / 5))
-        + day - 1;
-
-  const j = JD_EPOCH_OFFSET_GREGORIAN
+          + (1 - t) * (59 + s + 30 * (month - 3) + Math.floor((3 * month - 7) / 5))
+          + day - 1;
+  const j = JD_OFFSET
           + 365 * (year - 1)
           + Math.floor((year - 1) / 4)
           - Math.floor((year - 1) / 100)
@@ -117,6 +125,13 @@ function gregorianToJDN(year = 1, month = 1, day = 1) {
   return j;
 }
 
+/**
+ * given a JDN and an era returns the Ethiopic equivalent
+ *
+ * @param  {Number} jdn
+ * @param  {Number} era
+ * @return {Object} { year, month, day }
+ */
 function jdnToEthiopic(jdn, era = JD_EPOCH_OFFSET_AMETE_MIHRET) {
   const r = mod((jdn - era), 1461);
   const n = mod(r, 365) + 365 * Math.floor(r / 1460);
