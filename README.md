@@ -3,7 +3,7 @@
 JavaScript implementation of [Beyene-Kudlek](http://geez.org/Calendars/) algorithm.
 
 ### Installation
-`$ npm install ethiopic-calendar --save`
+`npm install ethiopic-calendar --save`
 
 ### Usage
 ```javascript

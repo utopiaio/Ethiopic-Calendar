@@ -99,7 +99,7 @@ function jdnToGregorian(jdn, JD_OFFSET = JD_EPOCH_OFFSET_GREGORIAN, leapYear = i
  * @param  {Number} jdn
  * @return {Number}
  */
-function guessEraFromJDN(jdn, JD_AM = JD_EPOCH_OFFSET_AMETE_MIHRET, JD_AA = JD_EPOCH_OFFSET_AMETE_ALEM) {
+function guessEra(jdn, JD_AM = JD_EPOCH_OFFSET_AMETE_MIHRET, JD_AA = JD_EPOCH_OFFSET_AMETE_ALEM) {
   return (jdn >= (JD_AM + 365)) ? JD_AM : JD_AA;
 }
 
@@ -157,7 +157,7 @@ function ethiopicToGregorian(year = 1, month = 1, day = 1, era = JD_EPOCH_OFFSET
 
 function gregorianToEthiopic(year = 1, month = 1, day = 1) {
   const jdn = gregorianToJDN(year, month, day);
-  return jdnToEthiopic(jdn, guessEraFromJDN(jdn));
+  return jdnToEthiopic(jdn, guessEra(jdn));
 }
 
 module.exports = {
