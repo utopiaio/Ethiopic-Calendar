@@ -1,62 +1,78 @@
+/* eslint no-console: 0 */
+/* eslint no-mixed-operators: 0 */
+
 /**
  * This is JavaScript implementation of Beyene-Kudlek algorithm.
  *
  * For more info have a look at: http://www.geez.org/Calendars/
- *
- * TODO:
- * - pass ESLint rules
- * - tests
- * - make functions pure
+ * Java Code at https://github.com/geezorg/geezorg.github.io/blob/master/Calendars/EthiopicCalendar.java
  */
 
-// Era Definitions
+/*
+** ********************************************************************************
+**  Era Definitions and Private Data
+** ********************************************************************************
+*/
+const JD_EPOCH_OFFSET_AMETE_ALEM = -285019; // ዓ/ዓ
 const JD_EPOCH_OFFSET_AMETE_MIHRET = 1723856; // ዓ/ም
 const JD_EPOCH_OFFSET_GREGORIAN = 1721426;
 
 const nMonths = 12;
+
 const monthDays = [
   0,
   31, 28, 31, 30, 31, 30,
   31, 31, 30, 31, 30, 31,
 ];
 
-/**
- * given a year; checks whether or not it's a leap year
- *
- * @param  {Number}  year
- * @return {Boolean}
- */
-function isGregorianLeap(year = 1) {
+function quotient(i, j) {
+  return Math.floor(i / j);
+}
+
+function mod(i, j) {
+  return (i - (j * quotient(i, j)));
+}
+
+function isGregorianLeap(year) {
   return (year % 4 === 0) && ((year % 100 !== 0) || (year % 400 === 0));
 }
 
 /**
- * converts to Gregorian given a JDN
+ *  Computes the Julian day number of the given Coptic or Ethiopic date.
+ *  This method assumes that the JDN epoch offset has been set. This method
+ *  is called by copticToGregorian and ethiopicToGregorian which will set
+ *  the jdn offset context.
  *
- * @param  {Number} j
- * @return {Object}
- * @return {Object.Number} Year
- * @return {Object.Number} Month
- * @return {Object.Number} Day
+ *  @param {Number} y year in the Ethiopic calendar
+ *  @param {Number} m month in the Ethiopic calendar
+ *  @param {Number} d date in the Ethiopic calendar
+ *  @param {Number} E [description]
+ *
+ *  @return {Number} The Julian Day Number (JDN)
  */
-function jdnToGregorian(j = 0) {
-  const r2000 = ((j - JD_EPOCH_OFFSET_GREGORIAN) % 730485);
-  const r400 = ((j - JD_EPOCH_OFFSET_GREGORIAN) % 146097);
-  const r100 = r400 % 36524;
-  const r4 = r100 % 1461;
+function ethCopticToJDN(year, month, day, era) {
+  return (era + 365) + 365 * (year - 1) + quotient(year, 4) + 30 * month + day - 31;
+}
 
-  let n = (r4 % 365) + (365 * Math.floor(r4 / 1460));
-  const s = Math.floor(r4 / 1095);
-  const aprime = (400 * Math.floor((j - JD_EPOCH_OFFSET_GREGORIAN) / 146097))
-               + (100 * Math.floor(r400 / 36524))
-               + (4 * Math.floor(r100 / 1461))
-               + (Math.floor(r4 / 365) - (Math.floor(r4 / 1460) - Math.floor(r2000 / 730484)));
+function jdnToGregorian(j) {
+  const r2000 = mod((j - JD_EPOCH_OFFSET_GREGORIAN), 730485);
+  const r400 = mod((j - JD_EPOCH_OFFSET_GREGORIAN), 146097);
+  const r100 = mod(r400, 36524);
+  const r4 = mod(r100, 1461);
+
+  let n = mod(r4, 365) + 365 * quotient(r4, 1460);
+  const s = quotient(r4, 1095);
+
+  const aprime = 400 * quotient((j - JD_EPOCH_OFFSET_GREGORIAN), 146097)
+             + 100 * quotient(r400, 36524)
+             + 4 * quotient(r100, 1461)
+             + quotient(r4, 365)
+             - quotient(r4, 1460)
+             - quotient(r2000, 730484);
   const year = aprime + 1;
-  const t = Math.floor(((364 + s) - n) / 306);
-  let month = (t * (Math.floor(n / 31) + 1))
-            + ((1 - t) * (Math.floor(((5 * (n - s)) + 13) / 153) + 1));
-
-  n += 1 - Math.floor(r2000 / 730484);
+  const t = quotient((364 + s - n), 306);
+  let month = t * (quotient(n, 31) + 1) + (1 - t) * (quotient((5 * (n - s) + 13), 153) + 1);
+  n += 1 - quotient(r2000, 730484);
   let day = n;
 
   if ((r100 === 0) && (n === 0) && (r400 !== 0)) {
@@ -77,98 +93,63 @@ function jdnToGregorian(j = 0) {
   return { year, month, day };
 }
 
-/**
- * given Gregorian returns JDN
- *
- * @param  {Number} year
- * @param  {Number} month
- * @param  {Number} day
- * @return {Number}
- */
-function gregorianToJDN(year = 1, month = 1, day = 1) {
-  const s = ((Math.floor(year / 4) - Math.floor((year - 1) / 4)) - Math.floor(year / 100))
-          + Math.floor((year - 1) / 100) + (Math.floor(year / 400) - Math.floor((year - 1) / 400));
+/*
+** ********************************************************************************
+**  Conversion Methods To/From the Julian Day Number
+** ********************************************************************************
+*/
+function guessEraFromJDN(jdn) {
+  return (jdn >= (JD_EPOCH_OFFSET_AMETE_MIHRET + 365))
+    ? JD_EPOCH_OFFSET_AMETE_MIHRET
+    : JD_EPOCH_OFFSET_AMETE_ALEM;
+}
 
-  const t = Math.floor((14 - month) / 12);
-
-  const n = ((31 * t) * (month - 1))
-          + ((1 - t) * (59 + s + (30 * (month - 3)) + Math.floor(((3 * month) - 7) / 5)))
-          + (day - 1);
+function gregorianToJDN(y, m, d) {
+  const s = quotient(y, 4)
+          - quotient(y - 1, 4)
+          - quotient(y, 100)
+          + quotient(y - 1, 100)
+          + quotient(y, 400)
+          - quotient(y - 1, 400);
+  const t = quotient(14 - m, 12);
+  const n = 31 * t * (m - 1)
+        + (1 - t) * (59 + s + 30 * (m - 3) + quotient((3 * m - 7), 5))
+        + d - 1;
 
   const j = JD_EPOCH_OFFSET_GREGORIAN
-          + (365 * (year - 1))
-          + (Math.floor((year - 1) / 4) - Math.floor((year - 1) / 100))
-          + Math.floor((year - 1) / 400)
+          + 365 * (y - 1)
+          + quotient(y - 1, 4)
+          - quotient(y - 1, 100)
+          + quotient(y - 1, 400)
           + n;
 
   return j;
 }
 
-/**
- * given JDN and an era JDN offset (consts set up-top)
- *
- * @param  {Number} jdn
- * @param  {Number} era
- * @return {Object}
- * @return {Object.Number} year
- * @return {Object.Number} month
- * @return {Object.Number} day
- */
-function jdnToEthiopic(jdn = 1, era = 1) {
-  const r = (jdn - era) % 1461;
-  const n = (r % 365) + (365 * Math.floor(r / 1460));
+function jdnToEthiopic(jdn, era) {
+  const r = mod((jdn - era), 1461);
+  const n = mod(r, 365) + 365 * quotient(r, 1460);
 
-  const year = ((4 * Math.floor((jdn - era) / 1461)) + Math.floor(r / 365)) - Math.floor(r / 1460);
-  const month = Math.floor(n / 30) + 1;
-  const day = (n % 30) + 1;
+  const year = 4 * quotient((jdn - era), 1461) + quotient(r, 365) - quotient(r, 1460);
+  const month = quotient(n, 30) + 1;
+  const day = mod(n, 30) + 1;
 
   return { year, month, day };
 }
 
-/**
- * given ethCoptic converts to JDN
- *
- * @param  {Number} year
- * @param  {Number} month
- * @param  {Number} day
- * @param  {Number} era
- * @return {Number}
- */
-function ethCopticToJDN(year = 1, month = 1, day = 1, era = 1) {
-  return (era + 365) + (365 * (year - 1)) + Math.floor(year / 4) + (30 * month) + (day - 31);
+function ethiopicToGregorian(year = 1, month = 1, day = 1, era = JD_EPOCH_OFFSET_AMETE_MIHRET) {
+  const jdn = ethCopticToJDN(year, month, day, era);
+  return jdnToGregorian(jdn);
 }
 
-/**
- * given Ethiopic returns Gregorian
- *
- * @param {Number} year
- * @param {Number} month
- * @param {Number} day
- * @return {Object}
- * @return {Object.Number} year
- * @return {Object.Number} month
- * @return {Object.Number} day
- */
-function ethiopicToGregorian(year = 1, month = 1, day = 1) {
-  return jdnToGregorian(ethCopticToJDN(year, month, day, JD_EPOCH_OFFSET_AMETE_MIHRET));
-}
-
-/**
- * given Gregorian returns Ethiopic
- *
- * @param {Number} year
- * @param {Number} month
- * @param {Number} day
- * @param {Object}
- * @param {Object.Number} year
- * @param {Object.Number} month
- * @param {Object.Number} day
- */
-function gregorianToEthiopic(year = 1, month = 1, day = 1) {
-  return jdnToEthiopic(gregorianToJDN(year, month, day), JD_EPOCH_OFFSET_AMETE_MIHRET);
+function gregorianToEthiopic(year, month, day) {
+  const jdn = gregorianToJDN(year, month, day);
+  return jdnToEthiopic(jdn, guessEraFromJDN(jdn));
 }
 
 module.exports = {
   ethiopicToGregorian,
   gregorianToEthiopic,
+  AA: JD_EPOCH_OFFSET_AMETE_ALEM,
+  AM: JD_EPOCH_OFFSET_AMETE_MIHRET,
 };
