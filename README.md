@@ -1,4 +1,4 @@
-# Ethiopic-Calendar
+# Ethiopic-Calendar [![Build Status](https://travis-ci.org/moe-szyslak/Ethiopic-Calendar.svg?branch=master)](https://travis-ci.org/moe-szyslak/Ethiopic-Calendar)
 
 JavaScript implementation of [Beyene-Kudlek](http://geez.org/Calendars/) algorithm.
 
