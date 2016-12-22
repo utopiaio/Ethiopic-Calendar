@@ -25,12 +25,8 @@ const monthDays = [
   31, 31, 30, 31, 30, 31,
 ];
 
-function quotient(i, j) {
-  return Math.floor(i / j);
-}
-
 function mod(i, j) {
-  return (i - (j * quotient(i, j)));
+  return (i - (j * Math.floor(i / j)));
 }
 
 function isGregorianLeap(year) {
@@ -51,7 +47,7 @@ function isGregorianLeap(year) {
  *  @return {Number} The Julian Day Number (JDN)
  */
 function ethCopticToJDN(year, month, day, era) {
-  return (era + 365) + 365 * (year - 1) + quotient(year, 4) + 30 * month + day - 31;
+  return (era + 365) + 365 * (year - 1) + Math.floor(year / 4) + 30 * month + day - 31;
 }
 
 function jdnToGregorian(jdn) {
@@ -60,19 +56,19 @@ function jdnToGregorian(jdn) {
   const r100 = mod(r400, 36524);
   const r4 = mod(r100, 1461);
 
-  let n = mod(r4, 365) + 365 * quotient(r4, 1460);
-  const s = quotient(r4, 1095);
+  let n = mod(r4, 365) + 365 * Math.floor(r4 / 1460);
+  const s = Math.floor(r4 / 1095);
 
-  const aprime = 400 * quotient((jdn - JD_EPOCH_OFFSET_GREGORIAN), 146097)
-             + 100 * quotient(r400, 36524)
-             + 4 * quotient(r100, 1461)
-             + quotient(r4, 365)
-             - quotient(r4, 1460)
-             - quotient(r2000, 730484);
+  const aprime = 400 * Math.floor((jdn - JD_EPOCH_OFFSET_GREGORIAN) / 146097)
+               + 100 * Math.floor(r400 / 36524)
+               + 4 * Math.floor(r100 / 1461)
+               + Math.floor(r4 / 365)
+               - Math.floor(r4 / 1460)
+               - Math.floor(r2000 / 730484);
   const year = aprime + 1;
-  const t = quotient((364 + s - n), 306);
-  let month = t * (quotient(n, 31) + 1) + (1 - t) * (quotient((5 * (n - s) + 13), 153) + 1);
-  n += 1 - quotient(r2000, 730484);
+  const t = Math.floor((364 + s - n) / 306);
+  let month = t * (Math.floor(n / 31) + 1) + (1 - t) * (Math.floor((5 * (n - s) + 13) / 153) + 1);
+  n += 1 - Math.floor(r2000 / 730484);
   let day = n;
 
   if ((r100 === 0) && (n === 0) && (r400 !== 0)) {
@@ -100,22 +96,22 @@ function guessEraFromJDN(jdn) {
 }
 
 function gregorianToJDN(year = 1, month = 1, day = 1) {
-  const s = quotient(year, 4)
-          - quotient(year - 1, 4)
-          - quotient(year, 100)
-          + quotient(year - 1, 100)
-          + quotient(year, 400)
-          - quotient(year - 1, 400);
-  const t = quotient(14 - month, 12);
+  const s = Math.floor(year / 4)
+          - Math.floor((year - 1) / 4)
+          - Math.floor(year / 100)
+          + Math.floor((year - 1) / 100)
+          + Math.floor(year / 400)
+          - Math.floor((year - 1) / 400);
+  const t = Math.floor((14 - month) / 12);
   const n = 31 * t * (month - 1)
-        + (1 - t) * (59 + s + 30 * (month - 3) + quotient((3 * month - 7), 5))
+        + (1 - t) * (59 + s + 30 * (month - 3) + Math.floor((3 * month - 7) / 5))
         + day - 1;
 
   const j = JD_EPOCH_OFFSET_GREGORIAN
           + 365 * (year - 1)
-          + quotient(year - 1, 4)
-          - quotient(year - 1, 100)
-          + quotient(year - 1, 400)
+          + Math.floor((year - 1) / 4)
+          - Math.floor((year - 1) / 100)
+          + Math.floor((year - 1) / 400)
           + n;
 
   return j;
@@ -123,10 +119,10 @@ function gregorianToJDN(year = 1, month = 1, day = 1) {
 
 function jdnToEthiopic(jdn, era = JD_EPOCH_OFFSET_AMETE_MIHRET) {
   const r = mod((jdn - era), 1461);
-  const n = mod(r, 365) + 365 * quotient(r, 1460);
+  const n = mod(r, 365) + 365 * Math.floor(r / 1460);
 
-  const year = 4 * quotient((jdn - era), 1461) + quotient(r, 365) - quotient(r, 1460);
-  const month = quotient(n, 30) + 1;
+  const year = 4 * Math.floor((jdn - era) / 1461) + Math.floor(r / 365) - Math.floor(r / 1460);
+  const month = Math.floor(n / 30) + 1;
   const day = mod(n, 30) + 1;
 
   return { year, month, day };
