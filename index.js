@@ -162,10 +162,10 @@ function gregorianToEthiopic(year = 1, month = 1, day = 1) {
 
 module.exports = {
   isGregorianLeap,
-  gregorianToJDN,
-  jdnToEthiopic,
-  ethiopicToGregorian,
-  gregorianToEthiopic,
+  gj: gregorianToJDN,
+  je: jdnToEthiopic,
+  eg: ethiopicToGregorian,
+  ge: gregorianToEthiopic,
   AA: JD_EPOCH_OFFSET_AMETE_ALEM,
   AM: JD_EPOCH_OFFSET_AMETE_MIHRET,
 };

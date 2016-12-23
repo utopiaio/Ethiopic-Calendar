@@ -7,18 +7,15 @@ JavaScript implementation of [Beyene-Kudlek](http://geez.org/Calendars/) algorit
 
 ### Usage
 ```javascript
-const { ethiopicToGregorian, gregorianToEthiopic } = require('ethiopic-calendar');
+const { isGregorianLeap, gj, je, eg, ge, AA, AM  } = require('ethiopic-calendar');
 
-// parameters expects year, month, day, [era]
-ethiopicToGregorian(1983, 13, 3); // { year: 1991, month: 9, day: 8 }
-gregorianToEthiopic(1991, 9, 8); // { year: 1983, month: 13, day: 3 }
-```
-
-To pass an era for `ethiopicToGregorian` import `AM` for ዓ/ም or `AA` for ዓ/ዓ
-
-```javascript
-const { ethiopicToGregorian, gregorianToEthiopic, AA, AM } = require('ethiopic-calendar');
-ethiopicToGregorian(550, 13, 5, AA); // { year: 7, month: 8, day: 28 }
+// isGregorianLeap(Year) -> Boolean;
+// gj(Year, Month, Day) -> Number; given Gregorian returns JDN
+// je(JDN[, era]) -> { year, month, day }; given JDN returns Ethiopic equivalent
+// eg(year, month, day[, era]) -> { year, month, day }; converts Ethiopic to Gregorian
+// ge(year, month, day) -> { year, month, day }; converts Gregorian to Ethiopic
+// AA -> Number; ዓ/ዓ JD offset
+// AM -> Number; ዓ/ም JD offset (default era for je and eg)
 ```
 
 ### TODO

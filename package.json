@@ -1,6 +1,6 @@
 {
   "name": "ethiopic-calendar",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "converts Ethiopic to Gregorian and vice-versa",
   "main": "index.js",
   "scripts": {
